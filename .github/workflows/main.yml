@@ -5,20 +5,24 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Install Dependencies
+      - name: Install Tools
         run: |
           sudo apt update
           sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-          pip install --upgrade buildozer
+          pip install --user --upgrade buildozer
+          echo "/home/runner/.local/bin" >> $GITHUB_PATH
 
       - name: Build APK
         run: |
-          # The 'yes' command auto-accepts the Android SDK licenses
+          # If buildozer.spec doesn't exist, this creates a default one
+          if [ ! -f buildozer.spec ]; then buildozer init; fi
           yes | buildozer -v android debug
 
-      - name: Upload APK
+      - name: Upload Result
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: VirajRemote-APK
